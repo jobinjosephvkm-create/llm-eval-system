@@ -1,12 +1,12 @@
 services:
-
   ollama:
-    image: ollama/ollama
+    build: ./ollama
     container_name: ollama
     ports:
       - "11434:11434"
-    volumes:
-      - ollama_data:/root/.ollama
+    networks:
+      - llm-net
+    restart: unless-stopped
 
   agent:
     build: ./agent
@@ -15,6 +15,9 @@ services:
       - "8001:8000"
     depends_on:
       - ollama
+    networks:
+      - llm-net
+    restart: unless-stopped
 
   judge:
     build: ./judge
@@ -23,6 +26,9 @@ services:
       - "8002:8000"
     depends_on:
       - ollama
+    networks:
+      - llm-net
+    restart: unless-stopped
 
   optimiser:
     build: ./optimiser
@@ -31,15 +37,24 @@ services:
       - "8003:8000"
     depends_on:
       - ollama
+    networks:
+      - llm-net
+    restart: unless-stopped
+
   orchestrator:
     build: ./orchestrator
     container_name: orchestrator
     ports:
       - "8004:8000"
     depends_on:
+      - ollama
       - agent
       - judge
       - optimiser
+    networks:
+      - llm-net
+    restart: unless-stopped
 
-volumes:
-  ollama_data:
+networks:
+  llm-net:
+    driver: bridge

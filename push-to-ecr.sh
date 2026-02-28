@@ -11,12 +11,17 @@ SERVICES=("orchestrator" "agent" "judge" "optimiser" "ollama")
 echo "Setting up Docker Buildx..."
 docker buildx create --use 2>/dev/null || docker buildx use default
 
-# Login to ECR
-echo "Logging in to AWS ECR..."
-aws ecr get-login-password --region $REGION | docker login --username AWS --password-stdin $REGISTRY
-if [ $? -ne 0 ]; then
-    echo "ECR login failed. Exiting."
-    exit 1
+# Smart ECR login - check if already logged in
+echo "Checking ECR login status..."
+if ! docker info | grep -q "Username"; then
+    echo "Logging in to AWS ECR..."
+    aws ecr get-login-password --region $REGION | docker login --username AWS --password-stdin $REGISTRY
+    if [ $? -ne 0 ]; then
+        echo "ECR login failed. Exiting."
+        exit 1
+    fi
+else
+    echo "Already logged into ECR!"
 fi
 
 # Build and push each service with multi-architecture support
@@ -27,11 +32,11 @@ for SERVICE in "${SERVICES[@]}"; do
     
     # Check if Dockerfile exists
     if [ ! -f "$SERVICE/Dockerfile" ]; then
-        echo "Warning: $SERVICE/Dockerfile not found. Skipping..."
+        echo "Dockerfile not found for $SERVICE. Skipping..."
         continue
     fi
     
-    # Build and push multi-architecture image
+    # Build and push with multi-architecture support
     docker buildx build \
         --platform linux/amd64,linux/arm64 \
         -f $SERVICE/Dockerfile \
@@ -41,8 +46,8 @@ for SERVICE in "${SERVICES[@]}"; do
     if [ $? -ne 0 ]; then
         echo "Failed to build/push $SERVICE."
     else
-        echo "Successfully built and pushed $ECR_IMAGE!"
+        echo "Successfully built and pushed $SERVICE!"
     fi
 done
 
-echo "All done!"
+echo " All services processed!"

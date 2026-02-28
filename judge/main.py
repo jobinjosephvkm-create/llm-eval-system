@@ -10,7 +10,8 @@ app = FastAPI()
 llm = Ollama(
     model="phi3",
     base_url="http://ollama:11434",
-    format="json"
+    format="json",
+    temperature=0.7  # Add some randomness for varied evaluations
 )
 
 
@@ -106,7 +107,14 @@ STRICT RULES:
         hallucination_score * 0.15
     )
 
-    # Attach score
-    parsed["average_score"] = round(average_score, 2)
+    # Create clean response with calculated average
+    response = EvalResponse(
+        accuracy=accuracy,
+        clarity=clarity,
+        reasoning_quality=reasoning,
+        hallucination_risk=hallucination,
+        explanation=parsed.get("explanation", "No explanation provided"),
+        average_score=round(average_score, 2)
+    )
 
-    return parsed
+    return response

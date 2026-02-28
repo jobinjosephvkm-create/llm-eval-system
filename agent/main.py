@@ -6,11 +6,11 @@ from typing import TypedDict
 
 app = FastAPI()
 
-# Connect to Ollama container (IMPORTANT: use service name, not localhost)
+# Connect to Ollama container (use service name inside Docker network)
 llm = ChatOllama(
-    model="phi3:latest",
+    model="phi3",
     base_url="http://ollama:11434",
-    temperature=0
+    temperature=0.3  # Add some randomness to allow different outputs with same prompt
 )
 
 # -----------------------------
@@ -49,11 +49,12 @@ app_graph = graph.compile()
 # -----------------------------
 class Query(BaseModel):
     input: str
+    system_prompt: str = P0  # Default to P0 if not provided
 
 @app.post("/chat")
 def chat(query: Query):
     result = app_graph.invoke({
         "input": query.input,
-        "system_prompt": P0
+        "system_prompt": query.system_prompt  # Use the provided system_prompt
     })
     return result

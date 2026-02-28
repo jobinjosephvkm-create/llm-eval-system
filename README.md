@@ -11,6 +11,7 @@ The system consists of 5 main services:
 - **Judge**: Judge service (port 8002)
 - **Optimiser**: Optimiser service (port 8003)
 - **Orchestrator**: Orchestrator service (port 8004)
+ - **Langfuse**: Observability dashboard for LLM traces (port 3000)
 
 ## Quick Start
 
@@ -59,6 +60,7 @@ Once running, services are available at:
 - **Judge**: http://localhost:8002
 - **Optimiser**: http://localhost:8003
 - **Orchestrator**: http://localhost:8004
+ - **Langfuse (observability)**: http://localhost:3000
 
 ## Useful Commands
 
