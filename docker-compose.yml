@@ -1,0 +1,45 @@
+services:
+
+  ollama:
+    image: ollama/ollama
+    container_name: ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+
+  agent:
+    build: ./agent
+    container_name: agent
+    ports:
+      - "8001:8000"
+    depends_on:
+      - ollama
+
+  judge:
+    build: ./judge
+    container_name: judge
+    ports:
+      - "8002:8000"
+    depends_on:
+      - ollama
+
+  optimiser:
+    build: ./optimiser
+    container_name: optimiser
+    ports:
+      - "8003:8000"
+    depends_on:
+      - ollama
+  orchestrator:
+    build: ./orchestrator
+    container_name: orchestrator
+    ports:
+      - "8004:8000"
+    depends_on:
+      - agent
+      - judge
+      - optimiser
+
+volumes:
+  ollama_data:
